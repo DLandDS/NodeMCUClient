@@ -21,7 +21,8 @@
         android:id="@+id/inputAddress"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:hint="ftag-id.ddns.net"
+        android:hint="Address Server"
+        android:text="192.168.100.13"
         android:textAlignment="center"
         />
     <Button

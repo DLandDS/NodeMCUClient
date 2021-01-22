@@ -42,7 +42,9 @@ public class MainActivity extends AppCompatActivity {
                         if(ConnectionTCPHandler.connection().isConnected()){
                             Toast.makeText(getApplicationContext(),"Connected", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(getApplicationContext(), MainActivity2.class));
+                            finish();
                         } else {
+                            ConnectionTCPHandler.connection().reset();
                             Toast.makeText(getApplicationContext(),"Cannot be connected.\nPlease Check your internet connection", Toast.LENGTH_SHORT).show();
                         }
                     }

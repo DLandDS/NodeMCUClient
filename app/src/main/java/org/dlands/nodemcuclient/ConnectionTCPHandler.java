@@ -1,17 +1,20 @@
 package org.dlands.nodemcuclient;
 
-import android.annotation.SuppressLint;
 import android.os.AsyncTask;
-import android.widget.Toast;
+import android.util.Log;
 
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
 
 public class ConnectionTCPHandler {
     private static ConnectionTCPHandler Connections;
     private String ip = "localhost";
-    private static Socket s = null;
-
+    private static Socket socket = null;
+    public static final int BUFFER_SIZE = 1;
     public static ConnectionTCPHandler connection(){
         if(Connections == null){
             Connections = new ConnectionTCPHandler();
@@ -19,9 +22,21 @@ public class ConnectionTCPHandler {
         return Connections;
     }
 
+    public void reset(){
+        try {
+            if(socket != null){
+                socket.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Connections = null;
+        socket = null;
+    }
+
     public void connect(){
         try {
-            s = new Socket(ip,8888);
+            socket = new Socket(ip,8888);
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -32,19 +47,36 @@ public class ConnectionTCPHandler {
     }
 
     public boolean isConnected(){
-        return s == null ? false : s.isConnected();
+        return socket == null ? false : socket.isConnected();
     }
 
     public boolean isAvalable(){
-        return s == null ? false : true;
+        return socket == null ? false : true;
     }
 
-    public void diconnect(){
+    public void disconnect(){
         try {
-            s.close();
+            socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    public void send(String message){
+        DataOutputStream dout = null;
+        try {
+            dout = new DataOutputStream(socket.getOutputStream());
+            dout.writeUTF(message);
+            //System.out.println("message sent : " + message);
+            dout.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String read() throws IOException {
+        final String message = null;
+        DataInputStream din = new DataInputStream(socket.getInputStream());
+        return din.readLine();
+    }
 }
