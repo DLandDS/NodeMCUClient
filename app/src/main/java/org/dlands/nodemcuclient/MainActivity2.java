@@ -17,8 +17,29 @@ import androidx.core.content.ContextCompat;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 
 public class MainActivity2 extends AppCompatActivity {
+    private static boolean isTimerStarted = false;
+    private static Instant startTimer;
+    private static Instant stopTimer;
+    Thread threadDataStream = new Thread(new DataStream());
+    Thread threadRefreshData = new Thread(new RequestQuery());
+
+    void writePing(long valuePing){
+        TextView textPing = (TextView) findViewById(R.id.ping);
+        if(valuePing > 3000){
+            textPing.setText("Packet Lost");
+        } else {
+            textPing.setText("Ping : " + valuePing + " ms");
+        }
+    }
+
+    void writePing(String messagePing){
+        TextView textPing = (TextView) findViewById(R.id.ping);
+        textPing.setText(messagePing);
+    }
 
     void setStatusLED(int StatusInput) {
         TextView statusLED = (TextView) findViewById(R.id.StatusLED);
@@ -40,8 +61,6 @@ public class MainActivity2 extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
         Switch switchLED = (Switch) findViewById(R.id.SwitchLED);
-        Thread threadDataStream = new Thread(new DataStream());
-        Thread threadRefreshData = new Thread(new RequestQuery());
         threadDataStream.start();
         threadRefreshData.start();
         switchLED.setOnClickListener(new View.OnClickListener() {
@@ -71,9 +90,12 @@ public class MainActivity2 extends AppCompatActivity {
             System.out.println("Thread Started");
             try {
                 while (true) {
-                    System.out.println("Collecting the message");
+                    //System.out.println("Collecting the message");
                     message = ConnectionTCPHandler.connection().read();
-                    System.out.println("message recieve = " + message);
+                    stopTimer = Instant.now();
+                    isTimerStarted = false;
+                    long ping = Duration.between(startTimer, stopTimer).toMillis();
+                    //System.out.println("message recieve = " + message);
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
@@ -82,6 +104,7 @@ public class MainActivity2 extends AppCompatActivity {
                             } else if (message.equalsIgnoreCase("1")) {
                                 MainActivity2.this.setStatusLED(1);
                             }
+                            MainActivity2.this.writePing(ping);
                         }
                     });
                 }
@@ -95,6 +118,10 @@ public class MainActivity2 extends AppCompatActivity {
         @Override
         public void run() {
             while (true) {
+                if (isTimerStarted == false){
+                    startTimer = Instant.now();
+                    isTimerStarted = true;
+                }
                 ConnectionTCPHandler.connection().send("s");
                 try {
                     Thread.sleep(100);
